@@ -11,8 +11,9 @@ from aiogram.dispatcher.filters.builtin import CommandStart, Command, Text, Rege
 from aiogram.utils.callback_data import CallbackData
 
 API_TOKEN = config.KEY_BOT
-FILE_STORE = config.FILE_STORE
+URL_STORE = config.URL_STORE
 PATH_MEDIA = Path(config.TEMP_MEDIA_FILES)
+STORE = Path(config.STORE)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -70,9 +71,10 @@ async def media_worker(call: types.CallbackQuery, callback_data: dict):
     elif media == "video":
         file_name = download(url, media, quality)
         media_file = PATH_MEDIA.joinpath(file_name)
-        media_file = media_file.replace(PATH_MEDIA.joinpath(media_file.name.replace(" ", '_')))
+        # move file to store
+        media_file = media_file.replace(STORE.joinpath(media_file.name.replace(" ", '_')))
         await bot.send_message(call.from_user.id, text=f'Mp4 video is created.\n'
-                                                       f'{FILE_STORE}{media_file}')
+                                                       f'{URL_STORE}{media_file.name}')
 
 
 def download(link, media, quality):
