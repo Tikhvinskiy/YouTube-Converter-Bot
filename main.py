@@ -5,12 +5,12 @@ from pathlib import Path
 import subprocess
 import config
 import datetime
-
 import logging
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup, ContentType
 from aiogram.dispatcher.filters.builtin import CommandStart, Command, Text, Regexp
 from aiogram.utils.callback_data import CallbackData
+
 
 API_TOKEN = config.KEY_BOT
 URL_STORE = config.URL_STORE
@@ -119,19 +119,21 @@ def converter(file_name, quality='128'):
 
 
 async def scheduler():
-    def rm_store(pth):
+    def rm_store(pth=STORE):
         for child in pth.glob('*'):
             if child.is_file():
                 child.unlink()
             else:
                 rm_store(child)
 
-    aioschedule.every(24).hours.do(rm_store(STORE))
+    aioschedule.every(24).hours.do(rm_store)
     while True:
         await aioschedule.run_pending()
         await asyncio.sleep(10)
 
 
-if __name__ == '__main__':
+async def on_startup(dp):
     asyncio.create_task(scheduler())
-    executor.start_polling(dp, skip_updates=True)
+
+if __name__ == '__main__':
+    executor.start_polling(dp, on_startup=on_startup, skip_updates=True)
