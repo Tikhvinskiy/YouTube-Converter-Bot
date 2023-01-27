@@ -1,8 +1,10 @@
 from pytube import YouTube
-# import os
+import asyncio
+import aioschedule
 from pathlib import Path
 import subprocess
 import config
+import datetime
 
 import logging
 from aiogram import Bot, Dispatcher, executor, types
@@ -64,16 +66,18 @@ async def media_worker(call: types.CallbackQuery, callback_data: dict):
         media_file = PATH_MEDIA.joinpath(file_name)
         converter(media_file, quality)
         media_file = media_file.replace(media_file.with_suffix(".mp3"))
+        media_file = media_file.replace(STORE.joinpath(media_file.name.replace(" ", '_')))
         print(media_file)
-        with open(media_file, 'rb') as audio:
-            await bot.send_audio(call.from_user.id, audio,
-                                 caption=f'Mp3 audio is created.\n')
+        await bot.send_message(call.from_user.id, text=f'Mp3 video is created.\n'
+                                                       f'Download it. Soon it will be deleted.\n'
+                                                       f'{URL_STORE}{media_file.name}')
     elif media == "video":
         file_name = download(url, media, quality)
         media_file = PATH_MEDIA.joinpath(file_name)
         # move file to store
         media_file = media_file.replace(STORE.joinpath(media_file.name.replace(" ", '_')))
         await bot.send_message(call.from_user.id, text=f'Mp4 video is created.\n'
+                                                       f'Download it. Soon it will be deleted.\n'
                                                        f'{URL_STORE}{media_file.name}')
 
 
@@ -114,5 +118,20 @@ def converter(file_name, quality='128'):
     ])
 
 
+async def scheduler():
+    def rm_store(pth):
+        for child in pth.glob('*'):
+            if child.is_file():
+                child.unlink()
+            else:
+                rm_store(child)
+
+    aioschedule.every(24).hours.do(rm_store(STORE))
+    while True:
+        await aioschedule.run_pending()
+        await asyncio.sleep(10)
+
+
 if __name__ == '__main__':
+    asyncio.create_task(scheduler())
     executor.start_polling(dp, skip_updates=True)
