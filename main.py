@@ -67,7 +67,7 @@ async def media_worker(call: types.CallbackQuery, callback_data: dict):
         media_file = PATH_MEDIA.joinpath(file_name)
         converter(media_file, quality)
         media_file = media_file.replace(media_file.with_suffix(".mp3"))
-        media_file = media_file.replace(STORE.joinpath("_".join(re.findall(r"[w.]+", media_file.name))))
+        media_file = media_file.replace(STORE.joinpath("_".join(re.findall(r"[\w.]+", media_file.name))))
         print(media_file)
         await bot.send_message(call.from_user.id, text=f'Mp3 video is created.\n'
                                                        f'Download it. Soon it will be deleted.\n'
@@ -76,7 +76,7 @@ async def media_worker(call: types.CallbackQuery, callback_data: dict):
         file_name = download(url, media, quality)
         media_file = PATH_MEDIA.joinpath(file_name)
         # move file to store
-        media_file = media_file.replace(STORE.joinpath("_".join(re.findall(r"[w.]+", media_file.name))))
+        media_file = media_file.replace(STORE.joinpath("_".join(re.findall(r"[\w.]+", media_file.name))))
         await bot.send_message(call.from_user.id, text=f'Mp4 video is created.\n'
                                                        f'Download it. Soon it will be deleted.\n'
                                                        f'{URL_STORE}{media_file.name}')
