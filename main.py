@@ -125,7 +125,8 @@ async def scheduler():
             if child.is_file():
                 child.unlink()
             else:
-                rm_store(child)
+                pass
+                # rm_store(child)
 
     aioschedule.every(24).hours.do(rm_store)
     while True:
