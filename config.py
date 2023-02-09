@@ -1,0 +1,4 @@
+KEY_BOT = ""
+URL_STORE = ""
+TEMP_MEDIA_FILES = ""
+STORE = ""
