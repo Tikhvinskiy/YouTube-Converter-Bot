@@ -1,3 +1,6 @@
 aiogram==2.23.1
 aioschedule==0.5.2
 pytube==12.1.0
+
+# for converting to mp3
+# sudo apt install ffmpeg

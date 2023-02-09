@@ -12,6 +12,7 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardBut
 from aiogram.dispatcher.filters.builtin import CommandStart, Command, Text, Regexp
 from aiogram.utils.callback_data import CallbackData
 
+from scheduler_func import scheduler
 
 API_TOKEN = config.KEY_BOT
 URL_STORE = config.URL_STORE
@@ -25,6 +26,15 @@ logging.basicConfig(level=logging.INFO)
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
 cd_walk = CallbackData("call_", "action", "url")
+
+
+async def set_default_commands(dp):
+    await dp.bot.set_my_commands(
+        [
+            types.BotCommand("start", "Let`s get started"),
+            types.BotCommand("help", "Help"),
+        ]
+    )
 
 
 def keyboard(link):
@@ -41,8 +51,9 @@ def keyboard(link):
 @dp.message_handler(CommandStart())
 async def bot_start(message: types.Message):
     await message.answer(f"Hi, {message.from_user.full_name}.\n"
-                         f"I will help you to get videos and audios from YouTube.\n"
-                         f"Now give me url you want to.")
+                         f"I will help you to get videos and audios from YouTube.\n")
+    await message.answer("*Now give me ⬇️url⬆️ you want to.*  🔊📲",
+                         parse_mode=types.ParseMode.MARKDOWN)
 
 
 @dp.message_handler(Regexp(r"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9("
@@ -55,6 +66,7 @@ async def get_type(message: types.Message):
 
 @dp.callback_query_handler(cd_walk.filter())
 async def media_worker(call: types.CallbackQuery, callback_data: dict):
+    await bot.send_message(call.from_user.id, text="Processing...  💡")
     action = callback_data.get('action').split("?")
     url = "https://www.youtube.com/" + callback_data.get('url')
     media = "video" if action[0] == "v" else "audio"
@@ -62,7 +74,6 @@ async def media_worker(call: types.CallbackQuery, callback_data: dict):
     print(url, media, quality, sep="\n")
 
     if media == "audio":
-        # "https://www.youtube.com/watch?v=50S_yILBrRQ"
         file_name = download(url, media, quality)
         media_file = PATH_MEDIA.joinpath(file_name)
         converter(media_file, quality)
@@ -83,6 +94,7 @@ async def media_worker(call: types.CallbackQuery, callback_data: dict):
 
 
 def download(link, media, quality):
+
     youtube_object = YouTube(link)
 
     if media == "video":
@@ -119,23 +131,11 @@ def converter(file_name, quality='128'):
     ])
 
 
-async def scheduler():
-    def rm_store(pth=STORE):
-        for child in pth.glob('*'):
-            if child.is_file():
-                child.unlink()
-            else:
-                pass
-                # rm_store(child)
-
-    aioschedule.every(24).hours.do(rm_store)
-    while True:
-        await aioschedule.run_pending()
-        await asyncio.sleep(10)
-
-
-async def on_startup(dp):
+async def on_startup(dp: Dispatcher):
+    await set_default_commands(dp)
     asyncio.create_task(scheduler())
+    print("The bot started")
+
 
 if __name__ == '__main__':
     executor.start_polling(dp, on_startup=on_startup, skip_updates=True)
