@@ -1,15 +1,13 @@
 from pytube import YouTube
 import asyncio
-import aioschedule
 import re
 from pathlib import Path
 import subprocess
 import config
-import datetime
 import logging
 from aiogram import Bot, Dispatcher, executor, types
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup, ContentType
-from aiogram.dispatcher.filters.builtin import CommandStart, Command, Text, Regexp
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.dispatcher.filters.builtin import CommandStart, Regexp
 from aiogram.utils.callback_data import CallbackData
 
 from scheduler_func import scheduler
